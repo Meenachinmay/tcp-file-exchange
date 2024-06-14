@@ -60,7 +60,7 @@ func StartClient(serverAddress, filePath string) error {
 
 func printProgress(prefix string, current, total int64) {
 	percentage := float64(current) / float64(total) * 100
-	fmt.Printf("\r%s: %.2f%%", prefix, percentage)
+	fmt.Printf("\r%s: %.2f%%\n", prefix, percentage)
 }
 
 func sendFileSize(conn net.Conn, fileSize int64) error {
