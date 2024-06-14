@@ -67,6 +67,14 @@ func handleConnection(conn net.Conn) {
 		printProgress("written to the file: ", receivedBytes, fileSize)
 	}
 
+	// Send acknowledgment to client
+	_, err = conn.Write([]byte("File received successfully"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error sending acknowledgment: %v\n", err)
+	} else {
+		fmt.Printf("sent acknowledgment\n")
+	}
+
 	fmt.Println("\n File received successfully and saved to", filePath)
 }
 
