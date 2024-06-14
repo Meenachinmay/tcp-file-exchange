@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"youtube/tce-server/shared"
 )
 
 func handleConnection(conn net.Conn) {
@@ -45,7 +46,7 @@ func handleConnection(conn net.Conn) {
 	defer file.Close()
 
 	reader := bufio.NewReader(conn)
-	buffer := make([]byte, fileSize)
+	buffer := make([]byte, shared.BufferSize)
 	var receivedBytes int64
 
 	for {
@@ -57,13 +58,13 @@ func handleConnection(conn net.Conn) {
 			break
 		}
 
-		_, writeErr := file.Write(buffer[:n])
+		writtenBytes, writeErr := file.Write(buffer[:n])
 		if writeErr != nil {
 			fmt.Fprintf(os.Stderr, "Error writing to file: %s\n", writeErr)
 			return
 		}
-		receivedBytes += int64(n)
-		printProgress("received", receivedBytes, fileSize)
+		receivedBytes += int64(writtenBytes)
+		printProgress("written to the file: ", receivedBytes, fileSize)
 	}
 
 	fmt.Println("\n File received successfully and saved to", filePath)
@@ -71,7 +72,7 @@ func handleConnection(conn net.Conn) {
 
 func printProgress(prefix string, current, total int64) {
 	percentage := float64(current) / float64(total) * 100
-	fmt.Printf("\r%s: %.2f%%", prefix, percentage)
+	fmt.Printf("\r%s: %.2f%%\n", prefix, percentage)
 }
 
 func readFileSize(conn net.Conn) (int64, error) {
