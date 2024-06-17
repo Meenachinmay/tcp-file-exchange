@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"os"
+	"sync"
 )
 
 const (
@@ -17,6 +19,7 @@ type Job struct {
 }
 
 var JobQueue = make(chan Job, maxNoOfConnections)
+var wg sync.WaitGroup
 
 func StartServer() error {
 	listener, err := net.Listen("tcp", port)
@@ -29,6 +32,7 @@ func StartServer() error {
 
 	// worker pool start
 	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
 		go worker(i)
 	}
 
@@ -46,15 +50,23 @@ func StartServer() error {
 			conn.Close()
 			continue
 		}
+
+		// can write a wait group here
+
 		// Submit the job to the job queue
 		JobQueue <- Job{conn: conn}
 	}
+	wg.Wait()
+	close(JobQueue)
 
+	// here we can wait for all tasks to be completed before finishing the method.
+	return nil
 }
 
 func worker(id int) {
+	defer wg.Done()
 	for job := range JobQueue {
-		fmt.Printf("Worker %d received job %s\n", id, job.conn.RemoteAddr())
+		log.Printf("Worker %d received job %s\n", id, job.conn.RemoteAddr())
 		handleConnection(job.conn)
 	}
 }

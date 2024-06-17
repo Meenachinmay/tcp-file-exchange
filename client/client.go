@@ -54,6 +54,15 @@ func StartClient(serverAddress, filePath string) error {
 		printProgress("Sent", sentBytes, fileSize)
 	}
 
+	// Wait for server acknowledgment before closing
+	ackBuffer := make([]byte, 256)
+	_, err = conn.Read(ackBuffer)
+	if err != nil && err != io.EOF {
+		fmt.Println("Error reading acknowledgment from server:", err)
+	} else {
+		fmt.Println("acknowledgment received from server:\n")
+	}
+
 	fmt.Println("File sent successfully")
 	return nil
 }
